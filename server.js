@@ -1,22 +1,26 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
-const app = express();
-const port = 3000;
-
-
-const kuromoji = require('kuromoji');
+const cors = require('cors');
 
 const DIC_DIR = 'dict';
+const PORT = 43123;
+const MIRIGANA_IDS = [
+  // webstore
+  'hbekfodhcnfpkmoeaijgbamedofonjib',
+  // development
+  'pcggpapfbjmiohgbhhggedambekkgjio',
+];
 
-// // Load dictionaries from file, and prepare tokenizer
-// kuromoji.builder({ dicPath: DIC_DIR }).build().then((tokenizer) => {
-//   // const path = tokenizer.tokenize('すもももももももものうち');
-//   const path = tokenizer.tokenize('西井万理那');
-//   console.log(path);
-//   module.exports = tokenizer;
-// });
+const app = express();
+app.use(cors((req, callback) => {
+  const result = { origin: false };
+  if (MIRIGANA_IDS.includes(req.header('Origin').replace('chrome-extension://', ''))) {
+    result.origin = true;
+  }
+  callback(null, result);
+}));
 
+const kuromoji = require('kuromoji');
 
 let tokenizer = null;
 kuromoji.builder({ dicPath: DIC_DIR }).build().then((t) => {
@@ -24,29 +28,47 @@ kuromoji.builder({ dicPath: DIC_DIR }).build().then((t) => {
   tokenizer = t;
 });
 
+const kanaToHira = (str = '') => str.replace(/[\u30a1-\u30f6]/g, (match) => {
+  const chr = match.charCodeAt(0) - 0x60;
+  return String.fromCharCode(chr);
+});
 
+const rulePurify = (token) => {
+  const pured = token
+    .filter((t) => /[\u4E00-\u9FFF]/.test(t.surface_form))
+    .filter((t) => t.reading)
+    .map((t) => ({
+      s: t.surface_form,
+      r: kanaToHira(t.reading),
+      p: t.word_position - 1,
+    }));
+  return pured;
+};
 
 // parse application/json
 app.use(bodyParser.json());
 
-app.get('/api/nlp', (req, res) => {
-  console.log(req.body);
-
-  if (!req.body) {
-    return res.status(400).end();
-  }
-
-  if (!req.body.text) {
-    return res.status(400).end();
-  }
-
+app.post('/api/nlp', (req, res) => {
   if (!tokenizer) {
-    return res.status(503).end();
+    return res.status(503).json({ err: 'kuromoji service is not ready.' });
   }
 
-  const textPath = tokenizer.tokenize(req.body.text);
-  res.json(textPath);
+  console.log(req.body);
+  if (!req.body) {
+    return res.status(400).json({ err: 'invalid request.' });
+  }
+
+  if (!Array.isArray(req.body)) {
+    return res.status(400).json({ err: 'invalid request content.' });
+  }
+
+  const tokens = req.body.map((t) => {
+    const token = tokenizer.tokenize(t);
+    const purified = rulePurify(token);
+    return purified;
+  });
+
+  return res.json(tokens);
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
+app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
