@@ -7,8 +7,8 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "kuromoji": "github:larvata/kuromoji.js",
-    "mecab-ipadic-seed": "github:larvata/mecab-ipadic-seed#v0.0.11"
+    "kuromoji": "github:mirigana/kuromoji.js",
+    "mecab-ipadic-seed": "github:mirigana/mecab-ipadic-seed#v0.0.11"
   },
   "devDependencies": {
     "eslint": "^7.5.0",
