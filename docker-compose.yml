@@ -1,0 +1,35 @@
+# https://github.com/koddr/example-static-website-docker-nginx-certbot/blob/master/docker-compose.ymls
+
+version: '3.7'
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ~/.docker/certbot/conf:/etc/letsencrypt
+      - ~/.docker/certbot/www:/var/www/certbot
+      - ./custom/ssl-certs:/etc/ssl
+      - ./nginx/logs:/etc/nginx/logs
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/snippets:/etc/nginx/snippets
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot
+    networks:
+      - nginx_net
+    volumes:
+      - ~/.docker/certbot/conf:/etc/letsencrypt
+      - ~/.docker/certbot/www:/var/www/certbot
+    restart: unless-stopped
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
+    depends_on:
+      - nginx
+
+networks:
+  nginx_net:
+    name: nginx_net

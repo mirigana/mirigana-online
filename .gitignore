@@ -1,3 +1,4 @@
 node_modules
 dict
 .cache
+.custom
