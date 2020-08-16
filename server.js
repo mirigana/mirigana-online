@@ -12,9 +12,14 @@ const MIRIGANA_IDS = [
 ];
 
 const app = express();
+
 app.use(cors((req, callback) => {
   const result = { origin: false };
-  if (MIRIGANA_IDS.includes(req.header('Origin').replace('chrome-extension://', ''))) {
+
+  const origin = req.header('Origin');
+  if (!origin) {
+    // empty origin
+  } else if (MIRIGANA_IDS.includes(req.header('Origin').replace('chrome-extension://', ''))) {
     result.origin = true;
   }
   callback(null, result);
@@ -48,7 +53,7 @@ const rulePurify = (token) => {
 // parse application/json
 app.use(bodyParser.json());
 
-app.post('/api/nlp', (req, res) => {
+app.post('/nlp', (req, res) => {
   if (!tokenizer) {
     return res.status(503).json({ err: 'kuromoji service is not ready.' });
   }
