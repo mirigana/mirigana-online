@@ -1,7 +1,9 @@
 #!/bin/bash
 
-CERT_PATH=.custom/ssl-certs
+CERTBOT=~/.docker/certbot
 
-mkdir -p $CERT_PATH/certs
+mkdir -p ${CERTBOT}/www
 
-openssl dhparam -out $CERT_PATH/certs/dhparam.pem 2048
+if [ ! -e "${CERTBOT}/dhparam.pem" ]; then
+  openssl dhparam -out ${CERTBOT}/dhparam.pem 2048
+fi

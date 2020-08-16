@@ -9,6 +9,9 @@ services:
       - nginx_net
     ports:
       - 80:80
+      - 443:443
+    extra_hosts:
+      - host.docker.internal:172.17.0.1
     volumes:
       - ~/.docker/certbot/conf:/etc/letsencrypt
       - ~/.docker/certbot/www:/var/www/certbot
@@ -18,20 +21,4 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/snippets:/etc/nginx/snippets
       - ./nginx/sites-enabled/certbot.conf:/etc/nginx/sites-enabled/certbot.conf
-
-  certbot:
-    container_name: certbot
-    image: certbot/certbot
-    networks:
-      - nginx_net
-    volumes:
-      - ~/.docker/certbot/conf:/etc/letsencrypt
-      - ~/.docker/certbot/www:/var/www/certbot
-    restart: unless-stopped
-    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
-    depends_on:
-      - nginx
-
-networks:
-  nginx_net:
-    driver: bridge
+      - ./nginx/sites-enabled/mirigana.app.conf:/etc/nginx/sites-enabled/mirigana.app.conf
