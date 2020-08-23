@@ -6,20 +6,27 @@ const DIC_DIR = 'dict';
 const PORT = 43123;
 const MIRIGANA_IDS = [
   // webstore
-  'hbekfodhcnfpkmoeaijgbamedofonjib',
+  'chrome-extension://hbekfodhcnfpkmoeaijgbamedofonjib',
+  'moz-extension://0bd9240f-3bfc-7f49-9cda-bc24c463fe2c',
+
   // development
-  'pcggpapfbjmiohgbhhggedambekkgjio',
+  'chrome-extension://pcggpapfbjmiohgbhhggedambekkgjio',
+  'chrome-extension://mkiijbdigpappglhnlmdhppgdlaidbjf',
+  'moz-extension://aedccddc-a2ea-6041-b195-a2669d918582',
 ];
 
 const app = express();
 
 app.use(cors((req, callback) => {
-  const result = { origin: false };
+  const result = {
+    origin: false,
+    maxAge: 60 * 60 * 24,
+  };
 
   const origin = req.header('Origin');
   if (!origin) {
     // empty origin
-  } else if (MIRIGANA_IDS.includes(req.header('Origin').replace('chrome-extension://', ''))) {
+  } else if (MIRIGANA_IDS.includes(req.header('Origin'))) {
     result.origin = true;
   }
   callback(null, result);
