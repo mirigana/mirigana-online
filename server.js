@@ -40,6 +40,24 @@ kuromoji.builder({ dicPath: DIC_DIR }).build().then((t) => {
   tokenizer = t;
 });
 
+// kuromoji sometime return the wrong word position
+// when the previous token is a multiple length symblo
+// this rule MUST be placed at the first rule
+const ruleFix = (token) => {
+  let currentPosition = -1;
+  token.forEach((t) => {
+    if (currentPosition === -1) {
+      currentPosition = t.word_position;
+    } else {
+      t.word_position = currentPosition;
+    }
+    currentPosition += t.surface_form.length;
+  });
+
+  return token;
+};
+
+
 const kanaToHira = (str = '') => str.replace(/[\u30a1-\u30f6]/g, (match) => {
   const chr = match.charCodeAt(0) - 0x60;
   return String.fromCharCode(chr);
@@ -76,7 +94,7 @@ app.post('/nlp', (req, res) => {
 
   const tokens = req.body.map((t) => {
     const token = tokenizer.tokenize(t);
-    const purified = rulePurify(token);
+    const purified = rulePurify(ruleFix(token));
     return purified;
   });
 

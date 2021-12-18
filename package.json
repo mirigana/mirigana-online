@@ -1,6 +1,6 @@
 {
   "name": "mirigana-online",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "server.js",
   "dependencies": {
@@ -11,9 +11,9 @@
     "mecab-ipadic-seed": "github:mirigana/mecab-ipadic-seed#v0.0.11"
   },
   "devDependencies": {
-    "eslint": "^7.5.0",
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.22.0"
+    "eslint": "^8.5.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
