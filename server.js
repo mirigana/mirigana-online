@@ -26,9 +26,14 @@ app.use(cors((req, callback) => {
   const origin = req.header('Origin');
   if (!origin) {
     // empty origin
-  } else if (MIRIGANA_IDS.includes(req.header('Origin'))) {
+  } else if (origin.startsWith('moz-extension://')) {
+    // workaround
+    // ff has a dynamic origin which is not related to the extension id
+    result.origin = true;
+  } else if (MIRIGANA_IDS.includes(origin)) {
     result.origin = true;
   }
+
   callback(null, result);
 }));
 
