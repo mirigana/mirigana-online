@@ -4,6 +4,8 @@ services:
     image: jonasal/nginx-certbot:4.1.0-alpine
     container_name: nginx-certbot
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - docker.env
     ports:
