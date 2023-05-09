@@ -1,37 +1,24 @@
-# https://github.com/koddr/example-static-website-docker-nginx-certbot/blob/master/docker-compose.ymls
-
-version: '3.7'
+version: "3"
 services:
-  nginx:
-    container_name: nginx
-    image: nginx:latest
-    networks:
-      - nginx_net
+  mirigana-nginx-certbot:
+    image: jonasal/nginx-certbot:4.1.0-alpine
+    container_name: nginx-certbot
+    restart: always
+    env_file:
+      - docker.env
     ports:
       - 80:80
+      - 443:443
     volumes:
-      - ~/.docker/certbot/conf:/etc/letsencrypt
-      - ~/.docker/certbot/www:/var/www/certbot
-      - ~/.docker/certbot/dhparam.pem:/etc/ssl/dhparam.pem
-      - ~/.docker/certbot/log:/var/log/letsencrypt
-      - ./nginx/logs:/etc/nginx/logs
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/snippets:/etc/nginx/snippets
-      - ./nginx/sites-enabled/certbot.conf:/etc/nginx/sites-enabled/certbot.conf
-
-  certbot:
-    container_name: certbot
-    image: certbot/certbot
+      - mirigana_nginx_secrets:/etc/letsencrypt
+      - ./docker/etc/nginx/templates:/etc/nginx/templates
     networks:
-      - nginx_net
-    volumes:
-      - ~/.docker/certbot/conf:/etc/letsencrypt
-      - ~/.docker/certbot/www:/var/www/certbot
-    restart: unless-stopped
-    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
-    depends_on:
-      - nginx
+     - mirigana
 
 networks:
-  nginx_net:
+  mirigana:
+    name: mirigana-net
     driver: bridge
+
+volumes:
+  mirigana_nginx_secrets:
