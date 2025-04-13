@@ -2,6 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
+const kuromoji = require('kuromoji');
+
+const { rebulidTokens } = require('./token-rules');
+
 const DIC_DIR = 'dict';
 const PORT = 43123;
 const MIRIGANA_IDS = [
@@ -37,48 +41,12 @@ app.use(cors((req, callback) => {
   callback(null, result);
 }));
 
-const kuromoji = require('kuromoji');
 
 let tokenizer = null;
 kuromoji.builder({ dicPath: DIC_DIR }).build().then((t) => {
   console.log('Kuromoji.js has been loaded.');
   tokenizer = t;
 });
-
-// kuromoji sometime return the wrong word position
-// when the previous token is a multiple length symblo
-// this rule MUST be placed at the first rule
-const ruleFix = (token) => {
-  let currentPosition = -1;
-  token.forEach((t) => {
-    if (currentPosition === -1) {
-      currentPosition = t.word_position;
-    } else {
-      t.word_position = currentPosition;
-    }
-    currentPosition += t.surface_form.length;
-  });
-
-  return token;
-};
-
-
-const kanaToHira = (str = '') => str.replace(/[\u30a1-\u30f6]/g, (match) => {
-  const chr = match.charCodeAt(0) - 0x60;
-  return String.fromCharCode(chr);
-});
-
-const rulePurify = (token) => {
-  const pured = token
-    .filter((t) => /[\u4E00-\u9FFF]/.test(t.surface_form))
-    .filter((t) => t.reading)
-    .map((t) => ({
-      s: t.surface_form,
-      r: kanaToHira(t.reading),
-      p: t.word_position - 1,
-    }));
-  return pured;
-};
 
 // parse application/json
 app.use(bodyParser.json());
@@ -97,13 +65,8 @@ app.post('/nlp', (req, res) => {
     return res.status(400).json({ err: 'invalid request content.' });
   }
 
-  const tokens = req.body.map((t) => {
-    const token = tokenizer.tokenize(t);
-    const purified = rulePurify(ruleFix(token));
-    return purified;
-  });
-
-  return res.json(tokens);
+  const tokens = req.body.map((t) => tokenizer.tokenize(t));
+  return res.json(rebulidTokens(tokens));
 });
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
